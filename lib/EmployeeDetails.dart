@@ -1,0 +1,452 @@
+// import 'package:flutter/material.dart';
+// import 'employee_profile_page.dart';
+
+// class Employeedetails extends StatefulWidget {
+//   const Employeedetails({super.key});
+
+//   @override
+//   State<Employeedetails> createState() => _EmployeedetailsState();
+// }
+
+// class _EmployeedetailsState extends State<Employeedetails> {
+//   final List<Map<String, String>> employees = [
+//     {
+//       "srno": "1",
+//       "empid": "EMP001",
+//       "name": "Rahul Sharma",
+//       "department": "HR",
+//       "phone": "9876543210",
+//       "salary": "40000",
+//     },
+//     {
+//       "srno": "2",
+//       "empid": "EMP002",
+//       "name": "Priya Verma",
+//       "department": "Finance",
+//       "phone": "9876543211",
+//       "salary": "50000",
+//     },
+//     {
+//       "srno": "3",
+//       "empid": "EMP003",
+//       "name": "Amit Kumar",
+//       "department": "IT",
+//       "phone": "9876543212",
+//       "salary": "45000",
+//     },
+//   ];
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text("Employee Details"),
+//         centerTitle: true,
+//         backgroundColor: Colors.blue,
+//       ),
+
+//       body: Padding(
+//         padding: const EdgeInsets.all(15),
+//         child: Column(
+//           children: [
+//             // Header Row
+//             Container(
+//               color: Colors.blue,
+//               padding: const EdgeInsets.all(12),
+//               child: const Row(
+//                 children: [
+//                   Expanded(
+//                     child: Text(
+//                       "Sr.No",
+//                       style: TextStyle(
+//                         color: Colors.white,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                   ),
+//                   Expanded(
+//                     child: Text(
+//                       "Emp ID",
+//                       style: TextStyle(
+//                         color: Colors.white,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                   ),
+//                   Expanded(
+//                     child: Text(
+//                       "Name",
+//                       style: TextStyle(
+//                         color: Colors.white,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+
+//             // Data Rows
+//             Expanded(
+//               child: ListView.builder(
+//                 itemCount: employees.length,
+//                 itemBuilder: (context, index) {
+//                   return Container(
+//                     padding: const EdgeInsets.all(12),
+//                     decoration: BoxDecoration(
+//                       border: Border.all(color: Colors.grey.shade300),
+//                     ),
+//                     child: Row(
+//                       children: [
+//                         Expanded(child: Text(employees[index]["srno"]!)),
+
+//                         Expanded(
+//                           child: InkWell(
+//                             onTap: () {
+//                               Navigator.push(
+//                                 context,
+//                                 MaterialPageRoute(
+//                                   builder: (context) => EmployeeProfilePage(
+//                                     srno: employees[index]["srno"]!,
+//                                     empId: employees[index]["empid"]!,
+//                                     name: employees[index]["name"]!,
+//                                     department: employees[index]["department"]!,
+//                                     phone: employees[index]["phone"]!,
+//                                     salary: employees[index]["salary"]!,
+//                                   ),
+//                                 ),
+//                               );
+//                             },
+//                             child: Text(
+//                               employees[index]["empid"]!,
+//                               style: const TextStyle(
+//                                 color: Colors.blue,
+//                                 fontWeight: FontWeight.bold,
+//                                 decoration: TextDecoration.underline,
+//                               ),
+//                             ),
+//                           ),
+//                         ),
+
+//                         Expanded(child: Text(employees[index]["name"]!)),
+//                       ],
+//                     ),
+//                   );
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+import 'package:flutter/material.dart';
+import '../database/database_helper.dart';
+import '../models/employee_model.dart';
+import 'employee_profile_page.dart';
+import 'add_employee.dart';
+
+class EmployeeDetailsPage extends StatefulWidget {
+  const EmployeeDetailsPage({super.key});
+
+  @override
+  State<EmployeeDetailsPage> createState() => _EmployeeDetailsPageState();
+}
+
+class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
+  late Future<List<Employee>> _employeesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmployees();
+  }
+
+  void _loadEmployees() {
+    _employeesFuture = DatabaseHelper.instance.getEmployees();
+  }
+
+  Future<void> _refreshEmployees() async {
+    setState(() {
+      _loadEmployees();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Employee Details"),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+      ),
+
+      body: FutureBuilder<List<Employee>>(
+        future: _employeesFuture,
+
+        builder: (context, snapshot) {
+          // Loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Error
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+
+          final employees = snapshot.data ?? [];
+
+          // Empty State
+          if (employees.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people_outline, size: 80, color: Colors.grey),
+
+                  SizedBox(height: 10),
+
+                  Text(
+                    "No Employees Found",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+
+                  SizedBox(height: 5),
+
+                  Text(
+                    "Click + button to add employees",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: _refreshEmployees,
+
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+
+              child: Column(
+                children: [
+                  // Header Row
+                  Container(
+                    color: Colors.blue,
+
+                    child: const Row(
+                      children: [
+                        SizedBox(
+                          width: 60,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              "ID",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          width: 100,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              "EMP ID",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          width: 150,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              "NAME",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          width: 120,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              "DEPARTMENT",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          width: 130,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              "PHONE",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(
+                          width: 100,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text(
+                              "Net SALARY",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Data Rows
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height - 180,
+                    width: 660,
+
+                    child: ListView.builder(
+                      itemCount: employees.length,
+
+                      itemBuilder: (context, index) {
+                        final employee = employees[index];
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 60,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(employee.id.toString()),
+                                ),
+                              ),
+
+                              SizedBox(
+                                width: 100,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+
+                                        MaterialPageRoute(
+                                          builder: (_) => EmployeeProfilePage(
+                                            empId: employee.empId,
+                                            srno: '',
+                                            name: '',
+                                            department: '',
+                                            phone: '',
+                                            salary: '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+
+                                    child: Text(
+                                      employee.empId,
+
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(
+                                width: 150,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(employee.name),
+                                ),
+                              ),
+
+                              SizedBox(
+                                width: 120,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(employee.department),
+                                ),
+                              ),
+
+                              SizedBox(
+                                width: 130,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(employee.phone),
+                                ),
+                              ),
+
+                              SizedBox(
+                                width: 100,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text("₹${employee.netSalary}"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
+
+        onPressed: () async {
+          await Navigator.push(
+            context,
+
+            MaterialPageRoute(builder: (_) => const AddEmployeePage()),
+          );
+
+          _refreshEmployees();
+        },
+
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
