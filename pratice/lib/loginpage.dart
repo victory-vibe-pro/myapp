@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:project/database/database_helper.dart';
-import 'package:project/homepage.dart';
+import 'package:pratice/HomePage.dart';
+import 'package:pratice/database/database_helper.dart';
 
 class Loginpage extends StatefulWidget {
   const Loginpage({super.key});

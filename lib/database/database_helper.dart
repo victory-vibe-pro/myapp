@@ -46,11 +46,35 @@ class DatabaseHelper {
       photo TEXT
     )
   ''');
+    await db.execute('''
+      CREATE TABLE user_master(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      )
+    ''');
+
+    await db.insert('user_master', {
+      'username': 'admin',
+      'password': 'admin123',
+    });
+  }
+
+  Future<bool> login(String username, String password) async {
+    final db = await instance.database;
+
+    final result = await db.query(
+      'user_master',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+
+    return result.isNotEmpty;
   }
 
   // Insert Employee
   Future<int> insertEmployee(Employee employee) async {
-    final db = await instance.database;
+    final db = await database;
 
     return await db.insert('employees', employee.toMap());
   }
