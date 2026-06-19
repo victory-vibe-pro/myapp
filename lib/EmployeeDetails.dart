@@ -250,6 +250,7 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                             DataColumn(label: Text('DEPARTMENT')),
                             DataColumn(label: Text('PHONE')),
                             DataColumn(label: Text('Net SALARY')),
+                            DataColumn(label: Text('ACTION')),
                           ],
                           rows: employees.map((employee) {
                             return DataRow(
@@ -279,6 +280,12 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                                 DataCell(Text(employee.department)),
                                 DataCell(Text(employee.phone)),
                                 DataCell(Text('₹${employee.netSalary}')),
+                                DataCell(
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: Icon(Icons.delete),
+                                  ),
+                                ),
                               ],
                             );
                           }).toList(),

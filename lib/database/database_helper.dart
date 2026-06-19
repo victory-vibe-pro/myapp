@@ -157,6 +157,14 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<int> getEmployeeCount() async {
+    final db = await instance.database;
+
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM employees');
+
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
   // Update Employee
   Future<int> updateEmployee(Employee employee) async {
     final db = await instance.database;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/add_employee.dart';
 import '../models/employee_model.dart';
 
 class EmployeeProfilePage extends StatelessWidget {
@@ -160,7 +161,43 @@ class EmployeeProfilePage extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
 
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.edit),
+                label: const Text("Edit Employee"),
+
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => AddEmployeePage(employee: employee)),
+                  );
+
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.delete),
+                label: const Text("Delete Employee"),
+
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+
+                onPressed: () {
+                  // Delete Employee
+                },
+              ),
+            ),
             const SizedBox(height: 20),
 
             SizedBox(

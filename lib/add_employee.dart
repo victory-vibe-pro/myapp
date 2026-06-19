@@ -3,15 +3,19 @@ import '../database/database_helper.dart';
 import '../models/employee_model.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'widgets/CustomTextField.dart';
 
 class AddEmployeePage extends StatefulWidget {
-  const AddEmployeePage({super.key});
+  final Employee? employee;
+
+  const AddEmployeePage({super.key, this.employee});
 
   @override
   State<AddEmployeePage> createState() => _AddEmployeePageState();
 }
 
 class _AddEmployeePageState extends State<AddEmployeePage> {
+  bool isEditMode = false;
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController empIdController = TextEditingController();
@@ -57,6 +61,39 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       setState(() {
         _selectedImage = File(image.path);
       });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.employee != null) {
+      isEditMode = true;
+
+      if (widget.employee!.photo.isNotEmpty) {
+        _selectedImage = File(widget.employee!.photo);
+      }
+
+      empIdController.text = widget.employee!.empId;
+      nameController.text = widget.employee!.name;
+      selectedDepartment = widget.employee!.department;
+      phoneController.text = widget.employee!.phone;
+
+      emailController.text = widget.employee!.email;
+      joiningDateController.text = widget.employee!.joiningDate;
+
+      skillsController.text = widget.employee!.skills;
+
+      experienceController.text = widget.employee!.experience;
+
+      basicSalaryController.text = widget.employee!.basicSalary;
+
+      allowancesController.text = widget.employee!.allowances;
+
+      deductionsController.text = widget.employee!.deductions;
+
+      selectedStatus = widget.employee!.status;
     }
   }
 
@@ -146,37 +183,84 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
         return;
       }
 
-      Employee employee = Employee(
-        empId: empIdController.text.trim(),
-        name: nameController.text.trim(),
-        department: selectedDepartment!,
-        phone: phoneController.text.trim(),
-        basicSalary: basicSalaryController.text.trim(),
-        allowances: allowancesController.text.trim().isEmpty
-            ? "0"
-            : allowancesController.text.trim(),
-        deductions: deductionsController.text.trim().isEmpty
-            ? "0"
-            : deductionsController.text.trim(),
-        email: emailController.text.trim(),
-        joiningDate: joiningDateController.text.trim(),
-        skills: skillsController.text.trim(),
-        status: selectedStatus,
-        experience: experienceController.text.trim(),
-        photo: _selectedImage?.path ?? '',
-      );
+      if (isEditMode) {
+        Employee employee = Employee(
+          id: widget.employee!.id,
 
-      await DatabaseHelper.instance.insertEmployee(employee);
+          empId: empIdController.text.trim(),
+          name: nameController.text.trim(),
+          department: selectedDepartment!,
+          phone: phoneController.text.trim(),
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Employee Added Successfully"),
-            backgroundColor: Colors.green,
-          ),
+          basicSalary: basicSalaryController.text.trim(),
+
+          allowances: allowancesController.text.trim().isEmpty
+              ? "0"
+              : allowancesController.text.trim(),
+
+          deductions: deductionsController.text.trim().isEmpty
+              ? "0"
+              : deductionsController.text.trim(),
+
+          email: emailController.text.trim(),
+          joiningDate: joiningDateController.text.trim(),
+          skills: skillsController.text.trim(),
+          status: selectedStatus,
+          experience: experienceController.text.trim(),
+
+          photo: _selectedImage?.path ?? widget.employee!.photo,
         );
 
-        Navigator.pop(context);
+        await DatabaseHelper.instance.updateEmployee(employee);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Employee Updated Successfully"),
+              backgroundColor: Colors.blue,
+            ),
+          );
+
+          Navigator.pop(context);
+        }
+      } else {
+        Employee employee = Employee(
+          empId: empIdController.text.trim(),
+          name: nameController.text.trim(),
+          department: selectedDepartment!,
+          phone: phoneController.text.trim(),
+
+          basicSalary: basicSalaryController.text.trim(),
+
+          allowances: allowancesController.text.trim().isEmpty
+              ? "0"
+              : allowancesController.text.trim(),
+
+          deductions: deductionsController.text.trim().isEmpty
+              ? "0"
+              : deductionsController.text.trim(),
+
+          email: emailController.text.trim(),
+          joiningDate: joiningDateController.text.trim(),
+          skills: skillsController.text.trim(),
+          status: selectedStatus,
+          experience: experienceController.text.trim(),
+
+          photo: _selectedImage?.path ?? '',
+        );
+
+        await DatabaseHelper.instance.insertEmployee(employee);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Employee Added Successfully"),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.pop(context);
+        }
       }
     }
   }
@@ -185,9 +269,9 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Employee"),
+        title: Text(isEditMode ? "Edit Employee" : "Add Employee"),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 242, 243, 245),
       ),
 
       body: SingleChildScrollView(
@@ -198,12 +282,11 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
           child: Column(
             children: [
-              TextFormField(
+              CustomTextField(
                 controller: empIdController,
-                decoration: const InputDecoration(
-                  labelText: "Employee ID",
-                  border: OutlineInputBorder(),
-                ),
+
+                label: "Employee ID",
+
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter Employee ID";
@@ -214,12 +297,9 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Employee Name",
-                  border: OutlineInputBorder(),
-                ),
+                label: "Employee Name",
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter Employee Name";
@@ -248,13 +328,10 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: phoneController,
+                label: "Phone Number",
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: "Phone Number",
-                  border: OutlineInputBorder(),
-                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter Phone Number";
@@ -270,13 +347,10 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: basicSalaryController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "Basic Salary",
-                  border: OutlineInputBorder(),
-                ),
+                label: "Basic Salary",
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter Basic Salary";
@@ -287,60 +361,51 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: allowancesController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "Allowances",
-                  border: OutlineInputBorder(),
-                ),
+
+                label: "Allowances",
               ),
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: deductionsController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "Deductions",
-                  border: OutlineInputBorder(),
-                ),
+
+                label: "Deductions",
               ),
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
+
+                label: "Email",
               ),
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: joiningDateController,
                 readOnly: true,
-                decoration: InputDecoration(
-                  labelText: "Joining Date",
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: _selectDate,
-                  ),
+
+                label: "Joining Date",
+
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: _selectDate,
                 ),
               ),
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: skillsController,
-                decoration: const InputDecoration(
-                  labelText: "Skills (Comma Separated)",
-                  border: OutlineInputBorder(),
-                ),
+
+                label: "Skills (Comma Separated)",
               ),
 
               const SizedBox(height: 15),
@@ -410,9 +475,9 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
 
-                      child: const Text(
-                        "Save Employee",
-                        style: TextStyle(color: Colors.white),
+                      child: Text(
+                        isEditMode ? "Update Employee" : "Save Employee",
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
