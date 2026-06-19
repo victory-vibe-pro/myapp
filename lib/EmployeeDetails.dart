@@ -227,202 +227,63 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
 
           return RefreshIndicator(
             onRefresh: _refreshEmployees,
-
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-
+            child: SizedBox.expand(
               child: Column(
                 children: [
-                  // Header Row
-                  Container(
-                    color: Colors.blue,
-
-                    child: const Row(
-                      children: [
-                        SizedBox(
-                          width: 60,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              "ID",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        child: DataTable(
+                          headingRowColor: WidgetStateProperty.all(Colors.blue),
+                          headingTextStyle: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
-                        ),
-
-                        SizedBox(
-                          width: 100,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              "EMP ID",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(
-                          width: 150,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              "NAME",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(
-                          width: 120,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              "DEPARTMENT",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(
-                          width: 130,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              "PHONE",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(
-                          width: 100,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Text(
-                              "Net SALARY",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Data Rows
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height - 180,
-                    width: 660,
-
-                    child: ListView.builder(
-                      itemCount: employees.length,
-
-                      itemBuilder: (context, index) {
-                        final employee = employees[index];
-
-                        return Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 60,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(employee.id.toString()),
-                                ),
-                              ),
-
-                              SizedBox(
-                                width: 100,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-
-                                        MaterialPageRoute(
-                                          builder: (_) => EmployeeProfilePage(
-                                            empId: employee.empId,
-                                            srno: '',
-                                            name: '',
-                                            department: '',
-                                            phone: '',
-                                            salary: '',
-                                          ),
-                                        ),
-                                      );
-                                    },
-
-                                    child: Text(
-                                      employee.empId,
-
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        fontWeight: FontWeight.bold,
-                                        decoration: TextDecoration.underline,
-                                      ),
+                          dataRowHeight: 60,
+                          columnSpacing: 20,
+                          columns: const [
+                            DataColumn(label: Text('ID')),
+                            DataColumn(label: Text('EMP ID')),
+                            DataColumn(label: Text('NAME')),
+                            DataColumn(label: Text('DEPARTMENT')),
+                            DataColumn(label: Text('PHONE')),
+                            DataColumn(label: Text('Net SALARY')),
+                          ],
+                          rows: employees.map((employee) {
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(employee.id.toString())),
+                                DataCell(
+                                  Text(
+                                    employee.empId,
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline,
                                     ),
                                   ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => EmployeeProfilePage(
+                                          employee: employee,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-
-                              SizedBox(
-                                width: 150,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(employee.name),
-                                ),
-                              ),
-
-                              SizedBox(
-                                width: 120,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(employee.department),
-                                ),
-                              ),
-
-                              SizedBox(
-                                width: 130,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(employee.phone),
-                                ),
-                              ),
-
-                              SizedBox(
-                                width: 100,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text("₹${employee.netSalary}"),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                                DataCell(Text(employee.name)),
+                                DataCell(Text(employee.department)),
+                                DataCell(Text(employee.phone)),
+                                DataCell(Text('₹${employee.netSalary}')),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],

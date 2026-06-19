@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:project/LoginPage.dart';
+import 'package:sqflite/sqflite.dart';
+// import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+import 'package:project/slash_page.dart';
 
 void main() {
+  // sqfliteFfiInit();
+
+  // databaseFactory = databaseFactoryFfi;
   runApp(const ProjectApp());
 }
 
@@ -13,7 +19,9 @@ class ProjectApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Employee Salary Management',
-      home: Loginpage(),
+
+      home: const SlashPage(),
+      // home: Loginpage(),
     );
   }
 }

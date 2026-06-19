@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'employeedetails.dart';
+import 'EmployeeDetails.dart';
 
 class homepage extends StatefulWidget {
   const homepage({super.key});
@@ -9,161 +9,101 @@ class homepage extends StatefulWidget {
 }
 
 class _homepageState extends State<homepage> {
+  Widget _buildStatCard({
+    required String label,
+    required String value,
+    required VoidCallback onPressed,
+    required double width,
+  }) {
+    return SizedBox(
+      width: width,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color.fromARGB(255, 22, 114, 190),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Text(value, style: const TextStyle(fontSize: 20)),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: onPressed, child: const Text("visit")),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Home Page"),
-        backgroundColor: Color(0xFF2196F3),
+        title: const Text("Home Page"),
+        backgroundColor: const Color(0xFF2196F3),
       ),
-      body: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color.fromARGB(255, 22, 114, 190),
-                  width: 2,
-                ),
-              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double maxWidth = constraints.maxWidth;
+          final double cardWidth = maxWidth >= 960
+              ? 280
+              : maxWidth >= 720
+              ? (maxWidth - 72) / 2
+              : maxWidth - 32;
 
-              child: Column(
-                //mainAxisSize: MainAxisSize.min,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: Center(
+              child: Wrap(
+                spacing: 24,
+                runSpacing: 24,
+                alignment: WrapAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-
-                    child: Text(
-                      textAlign: TextAlign.center,
-                      "Total Employees",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: const Text("100"),
-                  ),
-                  const SizedBox(height: 20),
-
-                  ElevatedButton(
+                  _buildStatCard(
+                    label: 'Total Employees',
+                    value: '100',
+                    width: cardWidth,
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EmployeeDetailsPage(),
+                          builder: (context) => const EmployeeDetailsPage(),
                         ),
                       );
-                      // Add your button action here
                     },
-                    child: const Text("visit"),
                   ),
-                ],
-              ),
-            ),
-
-            SizedBox(width: 30),
-
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color.fromARGB(255, 22, 114, 190),
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        textAlign: TextAlign.center,
-                        "Present Employees",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: const Text("90"),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
+                  _buildStatCard(
+                    label: 'Present Employees',
+                    value: '90',
+                    width: cardWidth,
                     onPressed: () {
                       Navigator.pop(context);
-                      // Add your button action here
                     },
-                    child: const Text("visit"),
                   ),
-                ],
-              ),
-            ),
-            SizedBox(width: 30),
-
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color.fromARGB(255, 22, 114, 190),
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: AlignmentGeometry.center,
-                      child: const Text(
-                        textAlign: TextAlign.center,
-                        "Absent Employees",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: const Text("10"),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
+                  _buildStatCard(
+                    label: 'Absent Employees',
+                    value: '10',
+                    width: cardWidth,
                     onPressed: () {
                       Navigator.pop(context);
-                      // Add your button action here
                     },
-                    child: const Text("visit"),
                   ),
                 ],
               ),
             ),
-          ], // End of Row children
-        ),
+          );
+        },
       ),
     );
   }

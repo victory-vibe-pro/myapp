@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+// import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../models/employee_model.dart';
 
@@ -22,12 +23,63 @@ class DatabaseHelper {
 
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDB,
+      onOpen: (db) async {
+        // Ensure tables exist in case the database was created earlier without them.
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS employees (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            empId TEXT NOT NULL,
+            name TEXT NOT NULL,
+            department TEXT NOT NULL,
+            phone TEXT NOT NULL,
+
+            basicSalary TEXT NOT NULL,
+            allowances TEXT NOT NULL,
+            deductions TEXT NOT NULL,
+
+            email TEXT,
+            joiningDate TEXT,
+            skills TEXT,
+            status TEXT,
+            experience TEXT,
+            photo TEXT
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS user_master(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL
+          )
+        ''');
+
+        // Ensure default admin user exists
+        final existing = await db.query(
+          'user_master',
+          where: 'username = ?',
+          whereArgs: ['admin'],
+        );
+
+        if (existing.isEmpty) {
+          await db.insert('user_master', {
+            'username': 'admin',
+            'password': 'admin123',
+          });
+        }
+      },
+    );
   }
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
     CREATE TABLE employees (
+
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       empId TEXT NOT NULL,
       name TEXT NOT NULL,
