@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:project/Attendance/services/face_recognition_Validation_service.dart';
 import 'dart:io';
+import 'painters/face_painter.dart';
 import 'services/input_image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:project/Attendance/services/Camera_service.dart';
@@ -19,13 +23,27 @@ class _CameraPageState extends State<CameraPage> {
   CameraDescription? selectedCamera;
   final FaceDetectorService _faceDetectorService = FaceDetectorService();
   late List<CameraDescription> cameras;
+  bool faceDetected = false;
 
+  Color borderColor = Colors.white;
+
+  double borderWidth = 3;
+
+  String statusText = "Looking for Face...";
   bool _isProcessing = false;
   bool _isDetecting = false;
 
   int faceCount = 0;
 
   List<Face> faces = [];
+  final Rect guideRect = Rect.fromLTWH(70, 150, 250, 330);
+  Timer? holdTimer;
+
+  bool isHolding = false;
+
+  bool readyForRecognition = false;
+
+  int countdown = 3;
 
   @override
   void initState() {
@@ -76,6 +94,49 @@ class _CameraPageState extends State<CameraPage> {
           faces = await _faceDetectorService.detectFaces(inputImage);
 
           faceCount = faces.length;
+          if (faceCount > 0) {
+            borderColor = Colors.green;
+
+            borderWidth = 5;
+
+            if (faces.isNotEmpty) {
+              final faceRect = faces.first.boundingBox;
+
+              if (FaceValidationService.isFaceInsideGuideBox(
+                faceRect: faceRect,
+
+                guideRect: guideRect,
+              )) {
+                statusText = "Hold Still...";
+
+                startHoldTimer();
+
+                borderColor = Colors.green;
+
+                faceDetected = true;
+              } else {
+                stopHoldTimer();
+
+                statusText = "Center your face";
+
+                borderColor = Colors.white;
+
+                faceDetected = false;
+              }
+            }
+
+            statusText = "Hold Still...";
+
+            startHoldTimer();
+          } else {
+            borderColor = Colors.white;
+
+            borderWidth = 3;
+
+            faceDetected = false;
+
+            statusText = "Looking for Face...";
+          }
 
           print("Faces Detected : $faceCount");
 
@@ -103,6 +164,38 @@ class _CameraPageState extends State<CameraPage> {
     super.dispose();
   }
 
+  void startHoldTimer() {
+    if (isHolding) return;
+
+    isHolding = true;
+
+    countdown = 3;
+
+    holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        countdown--;
+      });
+
+      if (countdown == 0) {
+        timer.cancel();
+
+        readyForRecognition = true;
+
+        statusText = "Recognizing...";
+      }
+    });
+  }
+
+  void stopHoldTimer() {
+    holdTimer?.cancel();
+
+    isHolding = false;
+
+    readyForRecognition = false;
+
+    countdown = 3;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_cameraService.controller == null ||
@@ -119,16 +212,32 @@ class _CameraPageState extends State<CameraPage> {
 
       body: Stack(
         children: [
+          Positioned.fill(
+            child: CustomPaint(painter: FacePainter(faces: faces)),
+          ),
           Positioned.fill(child: CameraPreview(_cameraService.controller!)),
 
           Center(
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeInOut,
+
               width: 250,
               height: 330,
 
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.green, width: 4),
                 borderRadius: BorderRadius.circular(20),
+
+                border: Border.all(color: borderColor, width: borderWidth),
+
+                boxShadow: [
+                  if (faceDetected)
+                    BoxShadow(
+                      color: Colors.green.withOpacity(.7),
+                      blurRadius: 25,
+                      spreadRadius: 4,
+                    ),
+                ],
               ),
             ),
           ),
@@ -146,9 +255,12 @@ class _CameraPageState extends State<CameraPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
 
-              child: const Text(
-                "Faces Detected : $faceCount",
-                style: const TextStyle(color: Colors.white, fontSize: 18),
+              child: Text(
+                readyForRecognition
+                    ? "Recognizing..."
+                    : isHolding
+                    ? "Hold Still... $countdown"
+                    : statusText,
               ),
             ),
           ),
