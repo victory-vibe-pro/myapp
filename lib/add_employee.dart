@@ -53,6 +53,57 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
   File? _selectedImage;
 
   final ImagePicker _picker = ImagePicker();
+  Future<void> showImageOptions() async {
+    showModalBottomSheet(
+      context: context,
+
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text("Camera"),
+
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  final XFile? image = await _picker.pickImage(
+                    source: ImageSource.camera,
+                  );
+
+                  if (image != null) {
+                    setState(() {
+                      _selectedImage = File(image.path);
+                    });
+                  }
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text("Gallery"),
+
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  final XFile? image = await _picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
+
+                  if (image != null) {
+                    setState(() {
+                      _selectedImage = File(image.path);
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -143,6 +194,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
     selectedDepartment = null;
     selectedStatus = "Active";
+    _selectedImage = null;
 
     setState(() {});
   }
@@ -176,13 +228,6 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
   Future<void> _saveEmployee() async {
     if (_formKey.currentState!.validate()) {
-      if (selectedDepartment == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select department")),
-        );
-        return;
-      }
-
       if (isEditMode) {
         Employee employee = Employee(
           id: widget.employee!.id,
@@ -210,7 +255,8 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
           photo: _selectedImage?.path ?? widget.employee!.photo,
         );
-
+        //update function
+        print("Updating Employee ID = ${widget.employee!.id}");
         await DatabaseHelper.instance.updateEmployee(employee);
 
         if (mounted) {
@@ -286,7 +332,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                 controller: empIdController,
 
                 label: "Employee ID",
-
+                readOnly: isEditMode,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return "Enter Employee ID";
@@ -311,6 +357,12 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
               const SizedBox(height: 15),
 
               DropdownButtonFormField<String>(
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Select Department";
+                  }
+                  return null;
+                },
                 initialValue: selectedDepartment,
                 decoration: const InputDecoration(
                   labelText: "Department",
@@ -428,12 +480,9 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
 
               const SizedBox(height: 15),
 
-              TextFormField(
+              CustomTextField(
                 controller: experienceController,
-                decoration: const InputDecoration(
-                  labelText: "Experience",
-                  border: OutlineInputBorder(),
-                ),
+                label: "Experience",
               ),
 
               const SizedBox(height: 25),
@@ -457,13 +506,12 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
               const SizedBox(height: 10),
 
               ElevatedButton.icon(
-                onPressed: pickImage,
-                icon: const Icon(Icons.photo),
-                label: const Text("Choose Photo"),
+                onPressed: showImageOptions,
+                icon: const Icon(Icons.add_a_photo),
+                label: const Text("Add Photo"),
               ),
 
               const SizedBox(height: 25),
-
               Row(
                 children: [
                   Expanded(
@@ -474,7 +522,6 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-
                       child: Text(
                         isEditMode ? "Update Employee" : "Save Employee",
                         style: const TextStyle(color: Colors.white),

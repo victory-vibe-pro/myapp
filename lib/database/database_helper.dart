@@ -59,18 +59,44 @@ class DatabaseHelper {
           )
         ''');
 
+        //employee_faces
+        // ---------------
+        // id
+        // employeeId
+        // embedding
+        // await db.execute('''
+        //         CREATE TABLE IF NOT EXISTS employee_faces (
+        //           id INTEGER PRIMARY KEY AUTOINCREMENT,
+        //          employeeId TEXT NOT NULL UNIQUE,
+        //           embedding TEXT NOT NULL
+        //         )
+        //       ''');
+        /////////////////////
+        // attendance
+        // ---------------
+        // id
+        // employeeId
+        // date
+        // checkIn
+        // checkOut
+        // status
+        // await db.execute('''
+        //         CREATE TABLE IF NOT EXISTS ATTENDANCE(
+        //           TRSC_NO INTEGER PRIMARY KEY AUTOINCREMENT,
+        //           TRSCDATE DATE ,INTIME TIME , OUTTIME TIME,STATUS TEXT NOT NULL,
+        //confidence
+        //         )
+        //       ''');
+
         // Ensure default admin user exists
         final existing = await db.query(
           'user_master',
           where: 'username = ?',
-          whereArgs: ['admin'],
+          whereArgs: ['ad'],
         );
 
         if (existing.isEmpty) {
-          await db.insert('user_master', {
-            'username': 'admin',
-            'password': 'admin123',
-          });
+          await db.insert('user_master', {'username': 'ad', 'password': 'ad'});
         }
       },
     );
@@ -106,10 +132,7 @@ class DatabaseHelper {
       )
     ''');
 
-    await db.insert('user_master', {
-      'username': 'admin',
-      'password': 'admin123',
-    });
+    await db.insert('user_master', {'username': 'ad', 'password': 'ad'});
   }
 
   Future<bool> login(String username, String password) async {
@@ -169,12 +192,16 @@ class DatabaseHelper {
   Future<int> updateEmployee(Employee employee) async {
     final db = await instance.database;
 
-    return await db.update(
+    int result = await db.update(
       'employees',
       employee.toMap(),
       where: 'id = ?',
       whereArgs: [employee.id],
     );
+
+    print("Rows Updated = $result");
+
+    return result;
   }
 
   // Delete Employee

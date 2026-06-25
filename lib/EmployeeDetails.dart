@@ -1,147 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'employee_profile_page.dart';
-
-// class Employeedetails extends StatefulWidget {
-//   const Employeedetails({super.key});
-
-//   @override
-//   State<Employeedetails> createState() => _EmployeedetailsState();
-// }
-
-// class _EmployeedetailsState extends State<Employeedetails> {
-//   final List<Map<String, String>> employees = [
-//     {
-//       "srno": "1",
-//       "empid": "EMP001",
-//       "name": "Rahul Sharma",
-//       "department": "HR",
-//       "phone": "9876543210",
-//       "salary": "40000",
-//     },
-//     {
-//       "srno": "2",
-//       "empid": "EMP002",
-//       "name": "Priya Verma",
-//       "department": "Finance",
-//       "phone": "9876543211",
-//       "salary": "50000",
-//     },
-//     {
-//       "srno": "3",
-//       "empid": "EMP003",
-//       "name": "Amit Kumar",
-//       "department": "IT",
-//       "phone": "9876543212",
-//       "salary": "45000",
-//     },
-//   ];
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Employee Details"),
-//         centerTitle: true,
-//         backgroundColor: Colors.blue,
-//       ),
-
-//       body: Padding(
-//         padding: const EdgeInsets.all(15),
-//         child: Column(
-//           children: [
-//             // Header Row
-//             Container(
-//               color: Colors.blue,
-//               padding: const EdgeInsets.all(12),
-//               child: const Row(
-//                 children: [
-//                   Expanded(
-//                     child: Text(
-//                       "Sr.No",
-//                       style: TextStyle(
-//                         color: Colors.white,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                   Expanded(
-//                     child: Text(
-//                       "Emp ID",
-//                       style: TextStyle(
-//                         color: Colors.white,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                   Expanded(
-//                     child: Text(
-//                       "Name",
-//                       style: TextStyle(
-//                         color: Colors.white,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-
-//             // Data Rows
-//             Expanded(
-//               child: ListView.builder(
-//                 itemCount: employees.length,
-//                 itemBuilder: (context, index) {
-//                   return Container(
-//                     padding: const EdgeInsets.all(12),
-//                     decoration: BoxDecoration(
-//                       border: Border.all(color: Colors.grey.shade300),
-//                     ),
-//                     child: Row(
-//                       children: [
-//                         Expanded(child: Text(employees[index]["srno"]!)),
-
-//                         Expanded(
-//                           child: InkWell(
-//                             onTap: () {
-//                               Navigator.push(
-//                                 context,
-//                                 MaterialPageRoute(
-//                                   builder: (context) => EmployeeProfilePage(
-//                                     srno: employees[index]["srno"]!,
-//                                     empId: employees[index]["empid"]!,
-//                                     name: employees[index]["name"]!,
-//                                     department: employees[index]["department"]!,
-//                                     phone: employees[index]["phone"]!,
-//                                     salary: employees[index]["salary"]!,
-//                                   ),
-//                                 ),
-//                               );
-//                             },
-//                             child: Text(
-//                               employees[index]["empid"]!,
-//                               style: const TextStyle(
-//                                 color: Colors.blue,
-//                                 fontWeight: FontWeight.bold,
-//                                 decoration: TextDecoration.underline,
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-
-//                         Expanded(child: Text(employees[index]["name"]!)),
-//                       ],
-//                     ),
-//                   );
-//                 },
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/employee_model.dart';
@@ -157,11 +13,16 @@ class EmployeeDetailsPage extends StatefulWidget {
 
 class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
   late Future<List<Employee>> _employeesFuture;
+  final searchController = TextEditingController();
+
+  List<Employee> allEmployees = [];
+  List<Employee> filteredEmployees = [];
 
   @override
   void initState() {
     super.initState();
     _loadEmployees();
+    loadEmployees();
   }
 
   void _loadEmployees() {
@@ -172,6 +33,24 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
     setState(() {
       _loadEmployees();
     });
+    await loadEmployees();
+  }
+
+  Future<void> loadEmployees() async {
+    allEmployees = await DatabaseHelper.instance.getEmployees();
+
+    filteredEmployees = allEmployees;
+
+    setState(() {});
+  }
+
+  void searchEmployee(String value) {
+    filteredEmployees = allEmployees.where((employee) {
+      return employee.name.toLowerCase().contains(value.toLowerCase()) ||
+          employee.empId.toLowerCase().contains(value.toLowerCase());
+    }).toList();
+
+    setState(() {});
   }
 
   @override
@@ -230,6 +109,22 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
             child: SizedBox.expand(
               child: Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+
+                    child: TextField(
+                      controller: searchController,
+
+                      decoration: const InputDecoration(
+                        hintText: "Search Employee",
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(),
+                      ),
+
+                      onChanged: searchEmployee,
+                    ),
+                  ),
+
                   Expanded(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -250,9 +145,9 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                             DataColumn(label: Text('DEPARTMENT')),
                             DataColumn(label: Text('PHONE')),
                             DataColumn(label: Text('Net SALARY')),
-                            DataColumn(label: Text('ACTION')),
+                            DataColumn(label: Text('Delete')),
                           ],
-                          rows: employees.map((employee) {
+                          rows: filteredEmployees.map((employee) {
                             return DataRow(
                               cells: [
                                 DataCell(Text(employee.id.toString())),
@@ -265,8 +160,8 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                                       decoration: TextDecoration.underline,
                                     ),
                                   ),
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => EmployeeProfilePage(
@@ -274,6 +169,8 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                                         ),
                                       ),
                                     );
+
+                                    _refreshEmployees();
                                   },
                                 ),
                                 DataCell(Text(employee.name)),
@@ -282,8 +179,63 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                                 DataCell(Text('₹${employee.netSalary}')),
                                 DataCell(
                                   IconButton(
-                                    onPressed: () {},
-                                    icon: Icon(Icons.delete),
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () async {
+                                      bool? confirm = await showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: const Text(
+                                              "Delete Employee",
+                                            ),
+                                            content: Text(
+                                              "Are you sure you want to permanently delete ${employee.name} ?",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context, false);
+                                                },
+                                                child: const Text("Cancel"),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                ),
+
+                                                onPressed: () {
+                                                  Navigator.pop(context, true);
+                                                },
+
+                                                child: const Text("Delete"),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                      if (confirm == true) {
+                                        await DatabaseHelper.instance
+                                            .deleteEmployee(employee.id!);
+
+                                        _refreshEmployees();
+
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "${employee.name} deleted successfully",
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
                                   ),
                                 ),
                               ],

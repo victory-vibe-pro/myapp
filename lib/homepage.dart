@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/LoginPage.dart';
+import 'package:project/Attendance/Camera_Page.dart';
 import 'package:project/database/database_helper.dart';
 import 'EmployeeDetails.dart';
 
@@ -65,41 +65,6 @@ class _homepageState extends State<homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // leading: Padding(
-        //   padding: EdgeInsets.all(8.0),
-        //   child: SizedBox(
-        //     width: 48,
-        //     height: 48,
-        //     child: Image.asset(
-        //       'lib/assets/images/deepa_logo.png',
-        //       fit: BoxFit.contain,
-        //       errorBuilder: (context, error, stackTrace) {
-        //         return Icon(
-        //           Icons.image_not_supported,
-        //           color: Colors.grey[600],
-        //           size: 32,
-        //         );
-        //       },
-        //     ),
-        //   ),
-        // ),
-        // elevation: 0,
-        // actions: [
-        //   Padding(
-        //     padding: EdgeInsets.only(right: 20),
-        //     child: Center(
-        //       child: ElevatedButton(
-        //         onPressed: () {
-        //           Navigator.push(
-        //             context,
-        //             MaterialPageRoute(builder: (context) => Loginpage()),
-        //           );
-        //         },
-        //         child: Text("Login"),
-        //       ),
-        //     ),
-        //   ),
-        // ],
         centerTitle: true,
         title: const Text("Home Page"),
         backgroundColor: const Color(0xFF2196F3),
@@ -136,11 +101,14 @@ class _homepageState extends State<homepage> {
                     },
                   ),
                   _buildStatCard(
-                    label: 'Present Employees',
+                    label: 'Attendance',
                     value: '90',
                     width: cardWidth,
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CameraPage()),
+                      );
                     },
                   ),
                   _buildStatCard(
