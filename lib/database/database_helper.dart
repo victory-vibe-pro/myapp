@@ -158,7 +158,25 @@ class DatabaseHelper {
   Future<List<Employee>> getEmployees() async {
     final db = await instance.database;
 
-    final result = await db.query('employees');
+    final result = await db.query('employees', orderBy: 'id DESC');
+
+    return result.map((e) => Employee.fromMap(e)).toList();
+  }
+
+  // Get Employees with Pagination (for better performance with large datasets)
+  Future<List<Employee>> getEmployeesPaginated({
+    int pageNumber = 1,
+    int pageSize = 20,
+  }) async {
+    final db = await instance.database;
+    final offset = (pageNumber - 1) * pageSize;
+
+    final result = await db.query(
+      'employees',
+      orderBy: 'id DESC',
+      limit: pageSize,
+      offset: offset,
+    );
 
     return result.map((e) => Employee.fromMap(e)).toList();
   }

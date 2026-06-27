@@ -463,7 +463,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
               const SizedBox(height: 15),
 
               DropdownButtonFormField<String>(
-                value: selectedStatus,
+                initialValue: selectedStatus,
                 decoration: const InputDecoration(
                   labelText: "Status",
                   border: OutlineInputBorder(),

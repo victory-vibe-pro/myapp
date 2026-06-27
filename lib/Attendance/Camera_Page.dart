@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:project/Attendance/AI/services/tflite_service.dart';
 import 'package:project/Attendance/services/face_recognition_Validation_service.dart';
-import 'dart:io';
+
 import 'painters/face_painter.dart';
 import 'services/input_image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -30,7 +31,6 @@ class _CameraPageState extends State<CameraPage> {
   double borderWidth = 3;
 
   String statusText = "Looking for Face...";
-  bool _isProcessing = false;
   bool _isDetecting = false;
 
   int faceCount = 0;
@@ -48,21 +48,12 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void initState() {
     super.initState();
-    initialize();
+    initializeCamera();
   }
 
   Future<void> initialize() async {
     await _cameraService.initialize();
-    selectedCamera = _cameraService.controller!.description;
-    await _cameraService.startImageStream((image) async {
-      if (_isDetecting) return;
-
-      _isDetecting = true;
-
-      // ML Kit will go here
-
-      _isDetecting = false;
-    });
+    await TfliteService.instance.loadModel();
     if (mounted) {
       setState(() {});
     }
@@ -82,7 +73,13 @@ class _CameraPageState extends State<CameraPage> {
     );
 
     await _cameraService.controller!.initialize();
+    await TfliteService.instance.loadModel();
+    selectedCamera = _cameraService.controller!.description;
+
     await _cameraService.startImageStream((CameraImage image) async {
+      print("Image Format: ${image.format.raw}");
+      print("Planes: ${image.planes.length}");
+
       if (_isDetecting) return;
 
       _isDetecting = true;
@@ -161,6 +158,7 @@ class _CameraPageState extends State<CameraPage> {
     _cameraService.dispose();
 
     _faceDetectorService.dispose();
+    TfliteService.instance.close();
     super.dispose();
   }
 
@@ -233,7 +231,7 @@ class _CameraPageState extends State<CameraPage> {
                 boxShadow: [
                   if (faceDetected)
                     BoxShadow(
-                      color: Colors.green.withOpacity(.7),
+                      color: Colors.green.withValues(alpha: 0.7),
                       blurRadius: 25,
                       spreadRadius: 4,
                     ),

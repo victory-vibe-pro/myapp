@@ -54,11 +54,7 @@ class _SplashPageState extends State<SplashPage>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'lib/assets/images/deepa_logo.png',
-                width: 150,
-                height: 150,
-              ),
+              Image.asset('assets/images/image.png', width: 150, height: 150),
 
               const SizedBox(height: 20),
 

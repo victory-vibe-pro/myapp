@@ -22,7 +22,12 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
   void initState() {
     super.initState();
     _loadEmployees();
-    loadEmployees();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   void _loadEmployees() {
@@ -33,15 +38,6 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
     setState(() {
       _loadEmployees();
     });
-    await loadEmployees();
-  }
-
-  Future<void> loadEmployees() async {
-    allEmployees = await DatabaseHelper.instance.getEmployees();
-
-    filteredEmployees = allEmployees;
-
-    setState(() {});
   }
 
   void searchEmployee(String value) {
@@ -77,6 +73,12 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
           }
 
           final employees = snapshot.data ?? [];
+
+          // Update the lists only when data changes
+          if (employees.isNotEmpty && allEmployees.isEmpty) {
+            allEmployees = employees;
+            filteredEmployees = employees;
+          }
 
           // Empty State
           if (employees.isEmpty) {
@@ -136,7 +138,7 @@ class _EmployeeDetailsPageState extends State<EmployeeDetailsPage> {
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
-                          dataRowHeight: 60,
+                          dataRowMinHeight: 60,
                           columnSpacing: 20,
                           columns: const [
                             DataColumn(label: Text('ID')),
