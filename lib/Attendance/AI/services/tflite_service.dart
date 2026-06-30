@@ -11,13 +11,15 @@ class TfliteService {
     try {
       _interpreter = await Interpreter.fromAsset('models/mobilefacenet.tflite');
 
-      print("✅ MobileFaceNet Loaded Successfully");
+      print("✅ MobileFaceNet Loaded");
+      print("Input Shape : ${_interpreter!.getInputTensor(0).shape}");
+      print("Output Shape : ${_interpreter!.getOutputTensor(0).shape}");
     } catch (e) {
-      print("❌ Error Loading Model: $e");
+      print(e);
     }
   }
 
-  Interpreter? get interpreter => _interpreter;
+  Interpreter get interpreter => _interpreter!;
 
   void close() {
     _interpreter?.close();

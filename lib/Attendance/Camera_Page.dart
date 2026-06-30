@@ -11,6 +11,10 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:project/Attendance/services/Camera_service.dart';
 
 import 'services/face_detector_service.dart';
+import 'services/capture_service.dart';
+import 'dart:io';
+// import 'package:camera/camera.dart';
+import 'services/recognition_service.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -45,10 +49,64 @@ class _CameraPageState extends State<CameraPage> {
 
   int countdown = 3;
 
+  //capture face varibales
+  final CaptureService _captureService = CaptureService();
+
+  XFile? capturedImage;
+
+  bool isCapturing = false;
+
+  //recognizationface initialization
+  final RecognitionService _recognitionService = RecognitionService();
+
   @override
-  void initState() {
+  Future<void> initState() async {
+    await TfliteService.instance.loadModel();
+
     super.initState();
     initializeCamera();
+  }
+  //caputure face related Future<void> captureFace() async {
+
+  Future<void> captureFace() async {
+    if (isCapturing) return;
+    if (capturedImage != null) return;
+
+    isCapturing = true;
+
+    try {
+      capturedImage = await _captureService.capture(_cameraService.controller!);
+      final faces = await _recognitionService.detectFace(capturedImage!.path);
+      if (faces.isNotEmpty) {
+        await _recognitionService.cropFace(
+          imagePath: capturedImage!.path,
+          face: faces.first,
+        );
+
+        print("Face Cropped Successfully");
+      }
+      print("Faces Found : ${faces.length}");
+
+      print("Image Saved : ${capturedImage!.path}");
+      await Future.delayed(const Duration(seconds: 2));
+
+      setState(() {
+        if (faces.isNotEmpty) {
+          statusText = "Face Detected";
+        } else {
+          statusText = "No Face Found";
+        }
+        capturedImage = null;
+        readyForRecognition = false;
+        isHolding = false;
+        countdown = 3;
+        statusText = "Looking for Face...";
+      });
+    } catch (e) {
+      print(e);
+    }
+
+    isCapturing = false;
   }
 
   Future<void> initialize() async {
@@ -156,7 +214,7 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void dispose() {
     _cameraService.dispose();
-
+    _recognitionService.dispose();
     _faceDetectorService.dispose();
     TfliteService.instance.close();
     super.dispose();
@@ -169,7 +227,7 @@ class _CameraPageState extends State<CameraPage> {
 
     countdown = 3;
 
-    holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       setState(() {
         countdown--;
       });
@@ -179,7 +237,9 @@ class _CameraPageState extends State<CameraPage> {
 
         readyForRecognition = true;
 
-        statusText = "Recognizing...";
+        statusText = "Capturing...";
+
+        await captureFace();
       }
     });
   }
@@ -211,10 +271,14 @@ class _CameraPageState extends State<CameraPage> {
       body: Stack(
         children: [
           Positioned.fill(
+            child: capturedImage != null
+                ? Image.file(File(capturedImage!.path), fit: BoxFit.cover)
+                : CameraPreview(_cameraService.controller!),
+          ),
+
+          Positioned.fill(
             child: CustomPaint(painter: FacePainter(faces: faces)),
           ),
-          Positioned.fill(child: CameraPreview(_cameraService.controller!)),
-
           Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 700),
